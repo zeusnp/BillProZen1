@@ -1,0 +1,173 @@
+{
+  "parties": [
+    {
+      "id": 1,
+      "name": "PUSPHAK",
+      "party_type": "buyer",
+      "contact_person": "Pradip",
+      "phone": "98751425",
+      "email": "sample@gmail.com",
+      "address": "Siliguri",
+      "gst_number": "7142511",
+      "outstanding_balance": 200000.0,
+      "created_at": "2025-06-02T06:51:30.807670",
+      "updated_at": "2025-06-02T09:29:40.499418"
+    },
+    {
+      "id": 2,
+      "name": "SAURAV KUMAR DAS",
+      "party_type": "buyer",
+      "contact_person": "Pradip",
+      "phone": "98751425",
+      "email": "sample@gmail.com",
+      "address": "Siliguri",
+      "gst_number": "7142511",
+      "outstanding_balance": 0.0,
+      "created_at": "2025-06-02T06:51:44.162829",
+      "updated_at": "2025-06-02T06:51:44.162834"
+    },
+    {
+      "id": 3,
+      "name": "BillPro Zen",
+      "party_type": "seller",
+      "contact_person": "Pradip",
+      "phone": "98751425",
+      "email": "sample@gmail.com",
+      "address": "",
+      "gst_number": "7142511",
+      "outstanding_balance": 980000.0,
+      "created_at": "2025-06-02T07:08:09.865168",
+      "updated_at": "2025-06-02T08:58:06.972237"
+    }
+  ],
+  "invoices": [
+    {
+      "id": 1,
+      "invoice_number": "INV-202506-0001",
+      "date": "2025-06-02T00:00:00",
+      "party_id": 1,
+      "vehicle_number": "1234",
+      "total_amount": 475000.0,
+      "pakka_party_id": 3,
+      "pakka_amount": 400000.0,
+      "kaccha_amount": 75000.0,
+      "created_at": "2025-06-02T08:11:45.496441",
+      "updated_at": "2025-06-02T08:11:45.496447"
+    },
+    {
+      "id": 2,
+      "invoice_number": "INV-202506-0002",
+      "date": "2025-06-02T00:00:00",
+      "party_id": 1,
+      "vehicle_number": "4315",
+      "total_amount": 790000.0,
+      "pakka_party_id": 3,
+      "pakka_amount": 590000.0,
+      "kaccha_amount": 200000.0,
+      "created_at": "2025-06-02T08:58:06.979365",
+      "updated_at": "2025-06-02T08:58:06.979370"
+    }
+  ],
+  "line_items": [
+    {
+      "id": 1,
+      "invoice_id": 1,
+      "description": "2.3 Core",
+      "quantity": 100000.0,
+      "rate": 4.0,
+      "amount": 400000.0,
+      "created_at": "2025-06-02T08:11:45.498321",
+      "updated_at": "2025-06-02T08:11:45.498326"
+    },
+    {
+      "id": 2,
+      "invoice_id": 2,
+      "description": "2.3 Falli",
+      "quantity": 17000.0,
+      "rate": 40.0,
+      "amount": 680000.0,
+      "created_at": "2025-06-02T08:58:06.981159",
+      "updated_at": "2025-06-02T08:58:06.981163"
+    }
+  ],
+  "expenses": [
+    {
+      "id": 1,
+      "invoice_id": 1,
+      "expense_type": "Vehicle Fare",
+      "amount": 75000.0,
+      "created_at": "2025-06-02T08:11:45.497494",
+      "updated_at": "2025-06-02T08:11:45.497499"
+    },
+    {
+      "id": 2,
+      "invoice_id": 2,
+      "expense_type": "Custom",
+      "amount": 45000.0,
+      "created_at": "2025-06-02T08:58:06.980426",
+      "updated_at": "2025-06-02T08:58:06.980430"
+    },
+    {
+      "id": 3,
+      "invoice_id": 2,
+      "expense_type": "GST",
+      "amount": 65000.0,
+      "created_at": "2025-06-02T08:58:06.980688",
+      "updated_at": "2025-06-02T08:58:06.980692"
+    }
+  ],
+  "transactions": [
+    {
+      "id": 1,
+      "party_id": 1,
+      "payment_date": "2025-06-02T00:00:00",
+      "amount": 40000.0,
+      "notes": "",
+      "created_at": "2025-06-02T08:21:38.439854",
+      "updated_at": "2025-06-02T08:21:38.439861"
+    },
+    {
+      "id": 2,
+      "party_id": 1,
+      "payment_date": "2025-06-02T00:00:00",
+      "amount": 500000.0,
+      "notes": "SBI Bank",
+      "created_at": "2025-06-02T09:04:25.056902",
+      "updated_at": "2025-06-02T14:49:51.639090"
+    }
+  ],
+  "preferences": {
+    "currencies": [
+      "USD",
+      "EUR",
+      "GBP",
+      "INR",
+      "JPY"
+    ],
+    "default_currency": "INR",
+    "theme": "light"
+  },
+  "users": [
+    {
+      "id": 1,
+      "name": "Alice Johnson",
+      "email": "alice.johnson@example.com",
+      "role": "Admin",
+      "status": "Active"
+    },
+    {
+      "id": 2,
+      "name": "Bob Williams",
+      "email": "bob.williams@example.com",
+      "role": "Editor",
+      "status": "Active"
+    },
+    {
+      "id": 3,
+      "name": "Charlie Davis",
+      "email": "charlie.davis@example.com",
+      "role": "Viewer",
+      "status": "Inactive"
+    }
+  ]
+}

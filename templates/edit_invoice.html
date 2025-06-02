@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BillProZen - Edit Invoice</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/invoices.css') }}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">BillProZen</div>
+        <ul class="nav-links">
+            <li><a href="/dashboard"><i class="material-icons">dashboard</i> Dashboard</a></li>
+            <li><a href="/transactions"><i class="material-icons">receipt</i> Transactions</a></li>
+            <li><a href="/parties"><i class="material-icons">people</i> Parties</a></li>
+            <li class="active"><a href="/invoices"><i class="material-icons">description</i> Invoices</a></li>
+            <li><a href="/reports"><i class="material-icons">bar_chart</i> Reports</a></li>
+            <li><a href="/settings"><i class="material-icons">settings</i> Settings</a></li>
+        </ul>
+        <div class="user-profile">
+            <i class="material-icons">account_circle</i>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header class="page-header">
+            <h1>Edit Invoice <span id="invoice-number"></span></h1>
+            <div class="header-actions">
+                <a href="/invoices" class="btn-secondary"><i class="material-icons">arrow_back</i> Back to Invoices</a>
+            </div>
+        </header>
+
+        <form id="edit-invoice-form">
+            <input type="hidden" id="invoice-id" value="{{ invoice_id }}">
+            
+            <div class="form-section">
+                <h2>Basic Details</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="invoice-date">Date</label>
+                        <input type="date" id="invoice-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="party-id">Party</label>
+                        <select id="party-id" required>
+                            <option value="">Select Party</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="vehicle-number">Vehicle Number</label>
+                        <input type="text" id="vehicle-number" placeholder="Enter vehicle number">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="section-header">
+                    <h2>Line Items</h2>
+                    <button type="button" id="add-line-item" class="btn-secondary"><i class="material-icons">add</i> Add Item</button>
+                </div>
+                <div id="line-items-container">
+                    <!-- Line items will be loaded here -->
+                </div>
+                <div class="line-items-total">
+                    <p>Line Items Total: <span id="line-items-total">₹0.00</span></p>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="section-header">
+                    <h2>Expenses</h2>
+                    <button type="button" id="add-expense" class="btn-secondary"><i class="material-icons">add</i> Add Expense</button>
+                </div>
+                <div id="expenses-container">
+                    <!-- Expenses will be loaded here -->
+                </div>
+                <div class="expenses-total">
+                    <p>Expenses Total: <span id="expenses-total">₹0.00</span></p>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>Special Billing</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="pakka-party-id">Pakka Party (Seller only)</label>
+                        <select id="pakka-party-id">
+                            <option value="">Select Pakka Party</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="pakka-amount">Pakka Amount</label>
+                        <input type="number" id="pakka-amount" min="0" step="0.01" placeholder="Enter pakka amount">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="kaccha-amount">Kaccha Amount</label>
+                        <input type="number" id="kaccha-amount" min="0" step="0.01" placeholder="Enter kaccha amount">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="invoice-total-section">
+                    <h2>Total Amount: <span id="total-amount">₹0.00</span></h2>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" id="cancel-edit" class="btn-secondary">Cancel</button>
+                <button type="submit" id="save-invoice" class="btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Line Item Template (hidden) -->
+    <template id="line-item-template">
+        <div class="line-item">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" class="item-description" placeholder="Enter description" required>
+                </div>
+                <div class="form-group">
+                    <label>Quantity</label>
+                    <input type="number" class="item-quantity" min="1" step="1" value="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Rate</label>
+                    <input type="number" class="item-rate" min="0" step="0.01" value="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Amount</label>
+                    <input type="number" class="item-amount" min="0" step="0.01" value="0" readonly>
+                </div>
+                <div class="form-group actions">
+                    <label>&nbsp;</label>
+                    <button type="button" class="btn-icon delete-line-item">
+                        <i class="material-icons">delete</i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Expense Template (hidden) -->
+    <template id="expense-template">
+        <div class="expense">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Expense Type</label>
+                    <input type="text" class="expense-type" placeholder="Enter expense type" required>
+                </div>
+                <div class="form-group">
+                    <label>Amount</label>
+                    <input type="number" class="expense-amount" min="0" step="0.01" value="0" required>
+                </div>
+                <div class="form-group actions">
+                    <label>&nbsp;</label>
+                    <button type="button" class="btn-icon delete-expense">
+                        <i class="material-icons">delete</i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script src="{{ url_for('static', filename='js/edit_invoice.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BillProZen - Settings</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">BillProZen</div>
+        <ul class="nav-links">
+            <li><a href="/dashboard"><i class="material-icons">dashboard</i> Dashboard</a></li>
+            <li><a href="/payments/record"><i class="material-icons">receipt</i> Transactions</a></li>
+            <li><a href="/parties"><i class="material-icons">people</i> Parties</a></li>
+            <li><a href="/invoices/create"><i class="material-icons">description</i> Invoices</a></li>
+            <li><a href="/reports"><i class="material-icons">bar_chart</i> Reports</a></li>
+            <li class="active"><a href="/settings"><i class="material-icons">settings</i> Settings</a></li>
+        </ul>
+        <div class="user-profile">
+            <i class="material-icons">account_circle</i>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="settings-header">
+            <h1>Settings</h1>
+            <p class="subtitle">Manage user accounts and app preferences</p>
+        </div>
+
+        <!-- User Management Section -->
+        <section class="settings-section">
+            <h2>User Management</h2>
+            <div class="table-responsive">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.name }}</td>
+                            <td>{{ user.email }}</td>
+                            <td><span class="role-badge {{ user.role.lower() }}">{{ user.role }}</span></td>
+                            <td><span class="status-badge {{ user.status.lower() }}">{{ user.status }}</span></td>
+                            <td>
+                                <button class="btn-icon edit-user" data-id="{{ user.id }}">
+                                    <i class="material-icons">edit</i>
+                                    Edit
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <button id="addUser" class="btn-primary">
+                <i class="material-icons">person_add</i>
+                Add User
+            </button>
+        </section>
+
+        <!-- App Preferences Section -->
+        <section class="settings-section">
+            <h2>App Preferences</h2>
+            <div class="preferences-grid">
+                <div class="preference-group">
+                    <label for="currency">Currency</label>
+                    <select id="currency" name="currency">
+                        {% for currency in preferences.currencies %}
+                        <option value="{{ currency }}" {% if currency == preferences.default_currency %}selected{% endif %}>
+                            {{ currency }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="preference-group">
+                    <label>Theme</label>
+                    <div class="theme-toggle">
+                        <button class="theme-btn {% if preferences.theme == 'light' %}active{% endif %}" data-theme="light">
+                            <i class="material-icons">light_mode</i>
+                            Light
+                        </button>
+                        <button class="theme-btn {% if preferences.theme == 'dark' %}active{% endif %}" data-theme="dark">
+                            <i class="material-icons">dark_mode</i>
+                            Dark
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Data Management Section -->
+        <section class="settings-section">
+            <h2>Data Management</h2>
+            <div class="data-actions">
+                <button id="backupData" class="btn-secondary">
+                    <i class="material-icons">backup</i>
+                    Backup Data
+                </button>
+                <button id="exportData" class="btn-secondary">
+                    <i class="material-icons">download</i>
+                    Export Data
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Add/Edit User Modal -->
+    <div id="userModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add User</h2>
+                <button class="close-modal">
+                    <i class="material-icons">close</i>
+                </button>
+            </div>
+            <form id="userForm">
+                <div class="form-group">
+                    <label for="userName">Name</label>
+                    <input type="text" id="userName" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="userEmail">Email</label>
+                    <input type="email" id="userEmail" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="userRole">Role</label>
+                    <select id="userRole" name="role" required>
+                        <option value="Admin">Admin</option>
+                        <option value="Editor">Editor</option>
+                        <option value="Viewer">Viewer</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="userStatus">Status</label>
+                    <select id="userStatus" name="status" required>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+</body>
+</html>

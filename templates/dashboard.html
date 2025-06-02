@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BillProZen - Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">BillProZen</div>
+        <ul class="nav-links">
+            <li class="active"><a href="/dashboard"><i class="material-icons">dashboard</i> Dashboard</a></li>
+            <li><a href="/payments/record"><i class="material-icons">receipt</i> Transactions</a></li>
+            <li><a href="/parties"><i class="material-icons">people</i> Parties</a></li>
+            <li><a href="/invoices/create"><i class="material-icons">description</i> Invoices</a></li>
+            <li><a href="/reports"><i class="material-icons">bar_chart</i> Reports</a></li>
+            <li><a href="/settings"><i class="material-icons">settings</i> Settings</a></li>
+        </ul>
+        <div class="user-profile">
+            <i class="material-icons">account_circle</i>
+        </div>
+    </nav>
+
+    <main class="container">
+        <header class="dashboard-header">
+            <div>
+                <h1>Dashboard</h1>
+                <p>Overview of your financial status and recent activities</p>
+            </div>
+            <div class="time-tabs">
+                <button class="tab {{ 'active' if active_period == 'today' or not active_period else '' }}">Today</button>
+                <button class="tab {{ 'active' if active_period == 'week' else '' }}">Last 7 Days</button>
+                <button class="tab {{ 'active' if active_period == 'month' else '' }}">Last 30 Days</button>
+            </div>
+        </header>
+
+        {% if error %}
+        <div id="errorMessage" style="display:none;">{{ error }}</div>
+        {% endif %}
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h3>Total Revenue</h3>
+                <p class="amount">₹{{ "{:,.0f}".format(metrics.total_revenue) }}</p>
+                <i class="material-icons">trending_up</i>
+            </div>
+            <div class="metric-card">
+                <h3>Outstanding Payments</h3>
+                <p class="amount">₹{{ "{:,.0f}".format(metrics.outstanding_payments) }}</p>
+                <i class="material-icons">payment</i>
+            </div>
+            <div class="metric-card warning">
+                <h3>Overdue Amount</h3>
+                <p class="amount">₹{{ "{:,.0f}".format(metrics.overdue_amount) }}</p>
+                <i class="material-icons">warning</i>
+            </div>
+            <div class="metric-card">
+                <h3>Total Transactions</h3>
+                <p class="amount">{{ metrics.total_transactions }}</p>
+                <i class="material-icons">receipt_long</i>
+            </div>
+        </div>
+
+        <section class="transactions-section">
+            <h2>Recent Transactions</h2>
+            <div class="table-container">
+                {% if transactions %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Party</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                        <tr data-type="{{ transaction.type }}" {% if transaction.type == 'Invoice' %}data-id="{{ transaction.description.replace('Invoice #', '') }}"{% endif %}>
+                            <td>{{ transaction.date }}</td>
+                            <td>{{ transaction.party }}</td>
+                            <td>{{ transaction.description }}</td>
+                            <td>₹{{ "{:,.0f}".format(transaction.amount) }}</td>
+                            <td><span class="status {{ transaction.status.lower() }}">{{ transaction.status }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="material-icons">info</i>
+                    <p>No transactions found for this time period.</p>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

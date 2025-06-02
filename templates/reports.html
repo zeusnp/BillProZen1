@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BillProZen - Reports</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/reports.css') }}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">BillProZen</div>
+        <ul class="nav-links">
+            <li><a href="/dashboard"><i class="material-icons">dashboard</i> Dashboard</a></li>
+            <li><a href="/payments"><i class="material-icons">receipt</i> Transactions</a></li>
+            <li><a href="/parties"><i class="material-icons">people</i> Parties</a></li>
+            <li><a href="/invoices/create"><i class="material-icons">description</i> Invoices</a></li>
+            <li class="active"><a href="/reports"><i class="material-icons">bar_chart</i> Reports</a></li>
+            <li><a href="/settings"><i class="material-icons">settings</i> Settings</a></li>
+        </ul>
+        <div class="user-profile">
+            <i class="material-icons">account_circle</i>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>Reports</h1>
+        </div>
+
+        <div class="filter-section">
+            <div class="filter-group">
+                <label for="filterParty">Party:</label>
+                <select id="filterParty">
+                    <option value="">All Parties</option>
+                    {% for party in parties %}
+                    <option value="{{ party.id }}">{{ party.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="startDate">From:</label>
+                <input type="date" id="startDate">
+            </div>
+            <div class="filter-group">
+                <label for="endDate">To:</label>
+                <input type="date" id="endDate">
+            </div>
+            <button id="generateReport" class="btn-primary">
+                <i class="material-icons">assessment</i>
+                Generate Report
+            </button>
+            <button id="clearFilters" class="btn-clear">
+                <i class="material-icons">clear</i>
+                Clear
+            </button>
+        </div>
+
+        <div class="report-actions" style="display: none;">
+            <button id="exportPdf" class="btn-secondary">
+                <i class="material-icons">picture_as_pdf</i>
+                Export as PDF
+            </button>
+            <button id="exportCsv" class="btn-secondary">
+                <i class="material-icons">file_download</i>
+                Export as CSV
+            </button>
+        </div>
+
+        <div id="loadingReport" class="loading-indicator" style="display: none;">
+            <i class="material-icons spinning">refresh</i>
+            Generating report...
+        </div>
+
+        <div id="reportContainer" class="report-container" style="display: none;">
+            <div class="invoice-header">
+                <h2>INVOICE</h2>
+            </div>
+
+            <div class="invoice-meta">
+                <div class="party-info">
+                    <p><strong>Party Name:</strong> <span id="reportParty">All Parties</span></p>
+                </div>
+                <div class="date-info">
+                    <p><strong>Date:</strong> <span id="reportDate">{{ current_date }}</span></p>
+                    <p><strong>Period:</strong> <span id="reportPeriod">All Time</span></p>
+                </div>
+            </div>
+
+            <div class="invoice-table-container">
+                <table class="invoice-table">
+                    <thead>
+                        <tr>
+                            <th>S.N</th>
+                            <th>Departure Date</th>
+                            <th>Description</th>
+                            <th>Qty</th>
+                            <th>Rate</th>
+                            <th>Amount</th>
+                            <th>TOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportTableBody">
+                        <!-- Report data will be loaded here via JavaScript -->
+                    </tbody>
+                </table>
+                <div id="noReportData" class="no-data-message" style="display: none;">
+                    No data found for the selected filters. Try adjusting your filters or create new invoices.
+                </div>
+            </div>
+
+            <div class="expenses-section">
+                <h3>Other Expenses:</h3>
+                <table class="expenses-table">
+                    <tbody id="expensesTableBody">
+                        <!-- Expenses will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="amount-breakdown">
+                <div class="amount-row">
+                    <span class="label">Pakka Amount</span>
+                    <span id="pakkaAmount" class="value">₹0.00</span>
+                </div>
+                <div class="amount-row">
+                    <span class="label">Kaccha Amt</span>
+                    <span id="kacchaAmount" class="value">₹0.00</span>
+                </div>
+            </div>
+
+            <div class="grand-total-section">
+                <div class="grand-total">
+                    <span>Grand Total:</span>
+                    <span id="grandTotal">₹0.00</span>
+                </div>
+            </div>
+
+            <div class="payments-section">
+                <h3>Payments Received:</h3>
+                <table class="payments-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Notes/Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentsTableBody">
+                        <!-- Payments will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="summary-section">
+                <div class="summary-row">
+                    <span class="label">Grand Total:</span>
+                    <span id="summaryGrandTotal" class="value">₹0.00</span>
+                </div>
+                <div class="summary-row">
+                    <span class="label">Total Paid:</span>
+                    <span id="summaryTotalPaid" class="value">₹0.00</span>
+                </div>
+                <div class="summary-row final-due">
+                    <span class="label">Final Due Amount:</span>
+                    <span id="summaryFinalDue" class="value">₹0.00</span>
+                </div>
+            </div>
+            
+            <div class="party-outstanding-section">
+                <h3>Party Outstanding Balances:</h3>
+                <table class="party-outstanding-table">
+                    <thead>
+                        <tr>
+                            <th>Party Name</th>
+                            <th>Outstanding Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="partyOutstandingTableBody">
+                        <!-- Party outstanding balances will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="notificationContainer"></div>
+
+    <!-- PDF generation libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- Test script to verify jsPDF is loaded correctly -->
+    <script>
+        // Check if jsPDF is loaded correctly
+        window.addEventListener('load', function() {
+            try {
+                if (typeof jspdf !== 'undefined') {
+                    console.log('jsPDF library loaded successfully');
+                    // Make a global reference to jsPDF constructor
+                    window.jsPDFConstructor = jspdf.jsPDF;
+                } else {
+                    console.error('jsPDF library not loaded properly');
+                }
+            } catch (e) {
+                console.error('Error checking jsPDF:', e);
+            }
+        });
+    </script>
+    
+    <script src="{{ url_for('static', filename='js/reports.js') }}"></script>
+</body>
+</html>

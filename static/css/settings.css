@@ -1,0 +1,294 @@
+.container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.settings-header {
+    margin-bottom: 2rem;
+}
+
+.settings-header h1 {
+    font-size: 1.75rem;
+    color: #333;
+    margin: 0 0 0.5rem 0;
+}
+
+.subtitle {
+    color: #666;
+    margin: 0;
+}
+
+.settings-section {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.settings-section h2 {
+    font-size: 1.25rem;
+    color: #333;
+    margin: 0 0 1.5rem 0;
+}
+
+/* User Management Table */
+.table-responsive {
+    overflow-x: auto;
+    margin-bottom: 1rem;
+}
+
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.users-table th,
+.users-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.users-table th {
+    font-weight: 600;
+    color: #333;
+    background: #f8f9fa;
+}
+
+.role-badge,
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.role-badge.admin {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.role-badge.editor {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.role-badge.viewer {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+.status-badge.active {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+.status-badge.inactive {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+/* App Preferences */
+.preferences-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+}
+
+.preference-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.preference-group label {
+    font-weight: 500;
+    color: #555;
+}
+
+select {
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    width: 100%;
+}
+
+select:focus {
+    outline: none;
+    border-color: #2196F3;
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+}
+
+.theme-toggle {
+    display: flex;
+    gap: 1rem;
+}
+
+.theme-btn {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    color: #666;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+
+.theme-btn.active {
+    background: #2196F3;
+    color: white;
+    border-color: #2196F3;
+}
+
+/* Data Management */
+.data-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+/* Buttons */
+.btn-primary {
+    background: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+    background: #1976D2;
+}
+
+.btn-secondary {
+    background: white;
+    color: #2196F3;
+    border: 1px solid #2196F3;
+    border-radius: 4px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    background: #f0f7ff;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: #2196F3;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.btn-icon:hover {
+    background: #f0f7ff;
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 500px;
+    padding: 1.5rem;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.close-modal:hover {
+    background: #f5f5f5;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .settings-section {
+        padding: 1rem;
+    }
+
+    .preferences-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .data-actions {
+        flex-direction: column;
+    }
+
+    .btn-secondary {
+        width: 100%;
+    }
+
+    .modal-content {
+        margin: 1rem;
+    }
+}

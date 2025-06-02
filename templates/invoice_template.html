@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice #{{ invoice.invoice_number }} - BillProZen</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        .company-info {
+            text-align: right;
+        }
+        .invoice-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .invoice-details {
+            margin-bottom: 20px;
+        }
+        .party-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .party-box {
+            width: 48%;
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .amount-col {
+            text-align: right;
+        }
+        .subtotal-row {
+            font-weight: bold;
+            background-color: #f9f9f9;
+        }
+        .total-section {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+        .total-box {
+            width: 300px;
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .grand-total {
+            font-weight: bold;
+            font-size: 18px;
+            border-top: 1px solid #ddd;
+            padding-top: 5px;
+            margin-top: 5px;
+        }
+        .special-billing {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+        }
+        .print-button {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .print-button button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        @media print {
+            .print-button {
+                display: none;
+            }
+            body {
+                padding: 0;
+            }
+            .invoice-container {
+                box-shadow: none;
+                border: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <div class="invoice-header">
+            <div>
+                <div class="invoice-title">INVOICE</div>
+                <div>Invoice #: {{ invoice.invoice_number }}</div>
+                <div>Date: {{ invoice.date.strftime('%d-%m-%Y') }}</div>
+            </div>
+            <div class="company-info">
+                <div><strong>BillProZen</strong></div>
+                <div>Your Company Address</div>
+                <div>Phone: Your Phone</div>
+                <div>Email: your@email.com</div>
+                <div>GST: Your GST Number</div>
+            </div>
+        </div>
+
+        <div class="party-info">
+            <div class="party-box">
+                <h3>Bill To:</h3>
+                <div><strong>{{ party.name }}</strong></div>
+                <div>{{ party.address }}</div>
+                <div>Contact: {{ party.contact_person }}</div>
+                <div>Phone: {{ party.phone }}</div>
+                <div>GST: {{ party.gst_number }}</div>
+            </div>
+            <div class="party-box">
+                <h3>Vehicle Information:</h3>
+                <div>Vehicle Number: {{ invoice.vehicle_number or 'N/A' }}</div>
+                {% if pakka_party %}
+                <div>&nbsp;</div>
+                <h3>Pakka Party:</h3>
+                <div><strong>{{ pakka_party.name }}</strong></div>
+                <div>GST: {{ pakka_party.gst_number }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <h3>Line Items</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Quantity</th>
+                    <th>Rate</th>
+                    <th class="amount-col">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in line_items %}
+                <tr>
+                    <td>{{ item.description }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>₹{{ "%.2f"|format(item.rate) }}</td>
+                    <td class="amount-col">₹{{ "%.2f"|format(item.amount) }}</td>
+                </tr>
+                {% endfor %}
+                <tr class="subtotal-row">
+                    <td colspan="3">Subtotal</td>
+                    <td class="amount-col">₹{{ "%.2f"|format(line_items_total) }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Expenses</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Expense Type</th>
+                    <th class="amount-col">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for expense in expenses %}
+                <tr>
+                    <td>{{ expense.expense_type }}</td>
+                    <td class="amount-col">₹{{ "%.2f"|format(expense.amount) }}</td>
+                </tr>
+                {% endfor %}
+                <tr class="subtotal-row">
+                    <td>Expenses Total</td>
+                    <td class="amount-col">₹{{ "%.2f"|format(expenses_total) }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        {% if invoice.pakka_amount > 0 or invoice.kaccha_amount > 0 %}
+        <div class="special-billing">
+            <h3>Special Billing Information</h3>
+            <div style="display: flex; justify-content: space-between;">
+                {% if invoice.pakka_amount > 0 %}
+                <div style="width: 48%;">
+                    <h4>Pakka Amount</h4>
+                    <div><strong>Party:</strong> {{ pakka_party.name if pakka_party else 'N/A' }}</div>
+                    <div><strong>Amount:</strong> ₹{{ "%.2f"|format(invoice.pakka_amount) }}</div>
+                </div>
+                {% endif %}
+                
+                {% if invoice.kaccha_amount > 0 %}
+                <div style="width: 48%;">
+                    <h4>Kaccha Amount</h4>
+                    <div><strong>Amount:</strong> ₹{{ "%.2f"|format(invoice.kaccha_amount) }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="total-section">
+            <div class="total-box">
+                <div class="total-row">
+                    <div>Line Items Total:</div>
+                    <div>₹{{ "%.2f"|format(line_items_total) }}</div>
+                </div>
+                <div class="total-row">
+                    <div>Expenses Total:</div>
+                    <div>₹{{ "%.2f"|format(expenses_total) }}</div>
+                </div>
+                <div class="total-row grand-total">
+                    <div>GRAND TOTAL:</div>
+                    <div>₹{{ "%.2f"|format(invoice.total_amount) }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Thank you for your business!</p>
+            <p>This is a computer-generated invoice and does not require a signature.</p>
+        </div>
+    </div>
+
+    <div class="print-button">
+        <button onclick="window.print()">Print Invoice</button>
+    </div>
+
+    <script>
+        // Auto-print when the page loads (optional)
+        // window.onload = function() {
+        //     window.print();
+        // };
+    </script>
+</body>
+</html>
