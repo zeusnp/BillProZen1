@@ -163,12 +163,15 @@ class Transaction(db.Model):
     party_id = db.Column(db.Integer, db.ForeignKey('parties.id'), nullable=False)
     payment_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     amount = db.Column(db.Float, nullable=False, default=0.0)
+    payment_type = db.Column(db.String(20), nullable=False, default='kaccha')  # 'pakka' or 'kaccha'
+    related_party_id = db.Column(db.Integer, db.ForeignKey('parties.id'), nullable=True)  # For pakka transactions, links to the seller party
     notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationship
-    party = db.relationship('Party', backref='transactions')
+    party = db.relationship('Party', foreign_keys=[party_id], backref='transactions')
+    related_party = db.relationship('Party', foreign_keys=[related_party_id], backref='related_transactions')
     
     def __repr__(self):
         return f'<Transaction {self.id} for Party {self.party_id}>'
@@ -182,6 +185,8 @@ class Transaction(db.Model):
             'party_id': self.party_id,
             'payment_date': self.payment_date.isoformat() if self.payment_date else None,
             'amount': self.amount,
+            'payment_type': self.payment_type,
+            'related_party_id': self.related_party_id,
             'notes': self.notes,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None

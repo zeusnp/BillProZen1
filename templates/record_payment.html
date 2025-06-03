@@ -73,6 +73,23 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="paymentType">Payment Type<span class="required">*</span></label>
+                    <select id="paymentType" name="paymentType" required>
+                        <option value="kaccha">Kaccha (Unofficial)</option>
+                        <option value="pakka">Pakka (Official)</option>
+                    </select>
+                    <small class="form-hint">Select whether this is a pakka (official) or kaccha (unofficial) payment.</small>
+                </div>
+
+                <div class="form-group" id="relatedPartyContainer" style="display: none;">
+                    <label for="relatedParty">Seller Party<span class="required">*</span></label>
+                    <select id="relatedParty" name="relatedParty">
+                        <option value="">Select Seller</option>
+                    </select>
+                    <small class="form-hint">Select the seller party for this pakka payment.</small>
+                </div>
+
+                <div class="form-group">
                     <label for="notes">Notes (Optional)</label>
                     <textarea id="notes" name="notes" rows="4" placeholder="Add notes"></textarea>
                 </div>

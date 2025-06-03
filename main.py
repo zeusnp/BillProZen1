@@ -145,10 +145,11 @@ def dashboard():
             })
             
         # Sort combined transactions by date (most recent first)
-        transactions.sort(key=lambda x: datetime.strptime(x['date'], '%Y-%m-%d'), reverse=True)
-        
-        # Limit to 10 most recent transactions
-        transactions = transactions[:10]
+        if transactions:
+            transactions.sort(key=lambda x: datetime.strptime(x['date'], '%Y-%m-%d'), reverse=True)
+            
+            # Limit to 10 most recent transactions
+            transactions = transactions[:10]
         
         return render_template('dashboard.html', metrics=metrics, transactions=transactions, active_period=time_period)
         
@@ -189,11 +190,61 @@ def add_party():
         email=data.get('email', ''),
         address=data.get('address', ''),
         gst_number=data.get('gst_number', ''),
-        outstanding_balance=float(data.get('outstanding_balance', 0.0))
+        outstanding_balance=0.0  # Initialize to zero, we'll update after processing opening balances
     )
     
     try:
         db.session.add(new_party)
+        db.session.flush()  # Get the ID without committing yet
+        
+        # Process opening balances
+        kaccha_balance = float(data.get('kaccha_balance', 0.0))
+        pakka_balances = data.get('pakka_balances', [])
+        total_balance = kaccha_balance
+        
+        # Add kaccha opening balance transaction if exists
+        if kaccha_balance != 0:
+            transaction = Transaction(
+                party_id=new_party.id,
+                payment_date=datetime.now(),
+                amount=abs(kaccha_balance),
+                payment_type='kaccha',
+                notes=f"Opening Balance (Kaccha): {'Credit' if kaccha_balance < 0 else 'Debit'} for {new_party.name}"
+            )
+            db.session.add(transaction)
+        
+        # Process pakka opening balances with specific seller parties
+        for pakka_entry in pakka_balances:
+            if 'amount' in pakka_entry and 'party_id' in pakka_entry:
+                pakka_amount = float(pakka_entry['amount'])
+                related_party_id = int(pakka_entry['party_id'])
+                
+                # Validate related party exists and is a seller
+                related_party = Party.query.get(related_party_id)
+                if not related_party or related_party.party_type != 'seller':
+                    return jsonify({'error': f'Invalid pakka party ID: {related_party_id}. Must be a seller.'}), 400
+                
+                # Create transaction for pakka opening balance
+                transaction = Transaction(
+                    party_id=new_party.id,
+                    payment_date=datetime.now(),
+                    amount=abs(pakka_amount),
+                    payment_type='pakka',
+                    related_party_id=related_party_id,
+                    notes=f"Opening Balance (Pakka): {'Credit' if pakka_amount < 0 else 'Debit'} for {new_party.name} with {related_party.name}"
+                )
+                db.session.add(transaction)
+                
+                # Update the related party's outstanding balance
+                if pakka_amount != 0:
+                    related_party.outstanding_balance -= pakka_amount  # Negative for the related party
+                    
+                # Add to total balance
+                total_balance += pakka_amount
+        
+        # Update the new party's outstanding balance with the total
+        new_party.outstanding_balance = total_balance
+        
         db.session.commit()
         return jsonify(new_party.to_dict()), 201
     except Exception as e:
@@ -246,6 +297,12 @@ def delete_party(party_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/parties/sellers', methods=['GET'])
+def get_seller_parties():
+    """Get all parties with party_type='seller'"""
+    seller_parties = Party.query.filter_by(party_type='seller').all()
+    return jsonify([party.to_dict() for party in seller_parties])
 
 @app.route('/invoices/create')
 def create_invoice():
@@ -348,19 +405,40 @@ def add_invoice():
         if abs((invoice.pakka_amount + invoice.kaccha_amount) - invoice.total_amount) > 0.01:
             return jsonify({'error': f'Pakka amount (₹{invoice.pakka_amount}) + Kaccha amount (₹{invoice.kaccha_amount}) must equal total amount (₹{invoice.total_amount})'}), 400
         
-        # Update pakka party's outstanding balance if pakka party is selected
-        if invoice.pakka_party_id and invoice.pakka_amount > 0:
-            pakka_party = Party.query.get(invoice.pakka_party_id)
-            if pakka_party:
-                # Increase the pakka party's outstanding balance (amount to be received)
-                pakka_party.outstanding_balance += invoice.pakka_amount
-                
         # Update the buyer party's outstanding balance (amount to be paid)
         if invoice.party_id:
             buyer_party = Party.query.get(invoice.party_id)
             if buyer_party:
                 # Increase the buyer's outstanding balance (they owe money)
                 buyer_party.outstanding_balance += invoice.total_amount
+                
+                # Create transaction record for the invoice (buyer side)
+                transaction = Transaction(
+                    party_id=invoice.party_id,
+                    payment_date=invoice.date,
+                    amount=invoice.total_amount,
+                    payment_type='invoice',
+                    notes=f"Invoice {invoice.invoice_number} created"
+                )
+                db.session.add(transaction)
+        
+        # Record pakka amount as a transaction linked to the pakka party, but don't change their balance
+        if invoice.pakka_party_id and invoice.pakka_amount > 0:
+            pakka_party = Party.query.get(invoice.pakka_party_id)
+            if pakka_party:
+                # Create transaction record for the pakka amount
+                pakka_transaction = Transaction(
+                    party_id=invoice.party_id,  # Link to the buyer party
+                    related_party_id=invoice.pakka_party_id,  # Link to the pakka party (seller)
+                    payment_date=invoice.date,
+                    amount=invoice.pakka_amount,
+                    payment_type='pakka',
+                    notes=f"Pakka amount for Invoice {invoice.invoice_number}"
+                )
+                db.session.add(pakka_transaction)
+                
+                # Note: We're NOT changing the pakka party's outstanding balance here
+                # This is just recording the transaction for ledger purposes
         
         db.session.add(invoice)
         db.session.commit()
@@ -588,11 +666,56 @@ def view_transactions():
 
 @app.route('/api/party-dues/<int:party_id>', methods=['GET'])
 def get_party_dues(party_id):
-    """Get outstanding and past dues for a party"""
+    """Get outstanding and past dues for a party, separated by pakka and kaccha"""
     party = Party.query.get_or_404(party_id)
     
     # Get total outstanding balance
-    outstanding_dues = party.outstanding_balance
+    total_outstanding_dues = party.outstanding_balance
+    
+    # Get pakka outstanding balance (sum of all pakka transactions)
+    pakka_transactions = Transaction.query.filter(
+        Transaction.party_id == party_id,
+        Transaction.payment_type == 'pakka'
+    ).all()
+    
+    # Also include pakka invoice transactions
+    pakka_invoice_transactions = Transaction.query.filter(
+        Transaction.party_id == party_id,
+        Transaction.related_party_id.isnot(None),
+        Transaction.payment_type == 'pakka'
+    ).all()
+    
+    # Get pakka opening balances
+    pakka_opening_balances = Transaction.query.filter(
+        Transaction.party_id == party_id,
+        Transaction.payment_type == 'pakka',
+        Transaction.notes.like('%Opening Balance%')
+    ).all()
+    
+    # Combine all pakka transactions
+    all_pakka_transactions = pakka_transactions + pakka_invoice_transactions + pakka_opening_balances
+    
+    # Calculate pakka outstanding by seller party
+    pakka_by_seller = {}
+    for transaction in all_pakka_transactions:
+        seller_id = transaction.related_party_id
+        if seller_id:
+            if seller_id not in pakka_by_seller:
+                seller = Party.query.get(seller_id)
+                pakka_by_seller[seller_id] = {
+                    'seller_name': seller.name if seller else f"Seller #{seller_id}",
+                    'amount': 0
+                }
+            
+            # Determine if this is a debit or credit transaction
+            sign = -1 if transaction.notes and ('Credit' in transaction.notes or 'Payment' in transaction.notes) else 1
+            pakka_by_seller[seller_id]['amount'] += transaction.amount * sign
+    
+    # Calculate total pakka outstanding
+    pakka_outstanding = sum(seller_data['amount'] for seller_data in pakka_by_seller.values())
+    
+    # Calculate kaccha outstanding (total - pakka)
+    kaccha_outstanding = total_outstanding_dues - pakka_outstanding
     
     # Calculate past dues (invoices older than 30 days)
     thirty_days_ago = datetime.now() - timedelta(days=30)
@@ -604,7 +727,10 @@ def get_party_dues(party_id):
     past_dues = sum(invoice.total_amount for invoice in past_due_invoices)
     
     return jsonify({
-        'outstanding_dues': outstanding_dues,
+        'total_outstanding_dues': total_outstanding_dues,
+        'pakka_outstanding': pakka_outstanding,
+        'kaccha_outstanding': kaccha_outstanding,
+        'pakka_by_seller': list(pakka_by_seller.values()),
         'past_dues': past_dues
     })
 

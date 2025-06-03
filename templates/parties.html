@@ -168,9 +168,21 @@
                     <input type="text" id="gst-number" name="gst_number">
                 </div>
                 <div class="form-group">
-                    <label for="outstanding-balance">Opening Balance</label>
-                    <input type="number" id="outstanding-balance" name="outstanding_balance" step="0.01" value="0.00">
+                    <label for="kaccha-balance">Kaccha Opening Balance</label>
+                    <input type="number" id="kaccha-balance" name="kaccha_balance" step="0.01" value="0.00">
+                    <small class="form-hint">Positive value means party owes money, negative means party has credit</small>
                 </div>
+                
+                <div id="pakka-balances-section">
+                    <h3>Pakka Opening Balances</h3>
+                    <div id="pakka-balances-container">
+                        <!-- Pakka balance entries will be added here dynamically -->
+                    </div>
+                    <button type="button" id="add-pakka-balance" class="btn-secondary">
+                        <i class="material-icons">add</i> Add Pakka Balance
+                    </button>
+                </div>
+                
                 <div class="form-actions">
                     <button type="button" id="cancel-form" class="btn-secondary">Cancel</button>
                     <button type="submit" class="btn-primary">Save</button>

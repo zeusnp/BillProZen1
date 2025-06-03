@@ -21,18 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch('/api/parties/sellers')
             .then(response => response.json())
             .then(sellers => {
-                // Clear existing options except the first one
-                while (pakkaPartySelect.options.length > 1) {
-                    pakkaPartySelect.remove(1);
-                }
-                
-                // Add seller parties to dropdown
-                sellers.forEach(seller => {
-                    const option = document.createElement('option');
-                    option.value = seller.id;
-                    option.textContent = seller.name;
-                    pakkaPartySelect.appendChild(option);
-                });
+                // ...
             })
             .catch(error => {
                 console.error('Error fetching seller parties:', error);

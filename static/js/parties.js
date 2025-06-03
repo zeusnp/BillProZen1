@@ -114,6 +114,69 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Add Pakka Balance button click handler
+    document.getElementById('add-pakka-balance').addEventListener('click', function() {
+        addPakkaBalanceRow();
+    });
+
+    // Function to add a new pakka balance row
+    function addPakkaBalanceRow(partyId = '', amount = 0) {
+        const container = document.getElementById('pakka-balances-container');
+        const rowIndex = container.children.length;
+        
+        const row = document.createElement('div');
+        row.className = 'pakka-balance-row';
+        row.innerHTML = `
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Pakka Party</label>
+                    <select class="pakka-party-select" name="pakka_party_id_${rowIndex}" required>
+                        <option value="">Select Seller Party</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Amount</label>
+                    <input type="number" class="pakka-amount" name="pakka_amount_${rowIndex}" step="0.01" value="${amount}">
+                </div>
+                <button type="button" class="btn-remove-pakka">
+                    <i class="material-icons">delete</i>
+                </button>
+            </div>
+        `;
+        
+        container.appendChild(row);
+        
+        // Add event listener for remove button
+        row.querySelector('.btn-remove-pakka').addEventListener('click', function() {
+            container.removeChild(row);
+        });
+        
+        // Fetch seller parties and populate dropdown
+        fetchSellerParties(row.querySelector('.pakka-party-select'), partyId);
+    }
+    
+    // Function to fetch seller parties for dropdown
+    function fetchSellerParties(selectElement, selectedPartyId = '') {
+        fetch('/api/parties/sellers')
+            .then(response => response.json())
+            .then(sellers => {
+                // Add seller parties to dropdown
+                sellers.forEach(seller => {
+                    const option = document.createElement('option');
+                    option.value = seller.id;
+                    option.textContent = seller.name;
+                    if (seller.id == selectedPartyId) {
+                        option.selected = true;
+                    }
+                    selectElement.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching seller parties:', error);
+                showNotification('Failed to load seller parties', 'error');
+            });
+    }
+
     // Delete Party button click handler
     deleteButton.addEventListener('click', function() {
         if (selectedParty) {
@@ -135,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('email').value = selectedParty.email || '';
             document.getElementById('address').value = selectedParty.address || '';
             document.getElementById('gst-number').value = selectedParty.gst_number || '';
-            document.getElementById('outstanding-balance').value = selectedParty.outstanding_balance || 0.00;
+            document.getElementById('kaccha-balance').value = selectedParty.kaccha_balance || 0.00;
         } else {
             // Clear form for new party
             partyForm.reset();
@@ -185,8 +248,23 @@ document.addEventListener('DOMContentLoaded', function() {
             email: document.getElementById('email').value,
             address: document.getElementById('address').value,
             gst_number: document.getElementById('gst-number').value,
-            outstanding_balance: parseFloat(document.getElementById('outstanding-balance').value) || 0
+            kaccha_balance: parseFloat(document.getElementById('kaccha-balance').value) || 0,
+            pakka_balances: []
         };
+        
+        // Collect pakka balances
+        const pakkaBalanceRows = document.querySelectorAll('.pakka-balance-row');
+        pakkaBalanceRows.forEach(row => {
+            const partySelect = row.querySelector('.pakka-party-select');
+            const amountInput = row.querySelector('.pakka-amount');
+            
+            if (partySelect.value && amountInput.value) {
+                formData.pakka_balances.push({
+                    party_id: partySelect.value,
+                    amount: parseFloat(amountInput.value) || 0
+                });
+            }
+        });
         
         // API endpoint and method
         const url = isEdit ? `/api/parties/${partyId}` : '/api/parties';

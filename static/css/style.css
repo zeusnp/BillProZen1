@@ -388,6 +388,62 @@ th {
     color: var(--primary-color);
 }
 
+/* Party form styles */
+.pakka-balance-row {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
+
+.pakka-balance-row .form-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.pakka-balance-row .form-group {
+    flex: 1;
+}
+
+.btn-remove-pakka {
+    background-color: #ff6b6b;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-remove-pakka:hover {
+    background-color: #ff5252;
+}
+
+#pakka-balances-section {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f5f5f5;
+}
+
+#pakka-balances-section h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 16px;
+    color: #333;
+}
+
+#add-pakka-balance {
+    margin-top: 10px;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .navbar {

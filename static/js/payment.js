@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const paymentDisplay = document.getElementById('paymentDisplay');
     const remainingBalance = document.getElementById('remainingBalance');
     const successToast = document.getElementById('successToast');
+    const paymentTypeSelect = document.getElementById('paymentType');
+    const relatedPartyContainer = document.getElementById('relatedPartyContainer');
+    const relatedPartySelect = document.getElementById('relatedParty');
 
     // Set today's date as default
     document.getElementById('paymentDate').valueAsDate = new Date();
@@ -20,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Update balance calculations
     function updateBalanceInfo() {
+        const paymentType = paymentTypeSelect.value;
         const outstanding = parseFloat(outstandingDues.textContent.replace('₹', '')) || 0;
         const payment = parseFloat(paymentAmount.value) || 0;
         const remaining = outstanding - payment;
@@ -31,6 +35,50 @@ document.addEventListener('DOMContentLoaded', function() {
         balanceInfo.style.display = payment > 0 ? 'block' : 'none';
     }
 
+    // Show/hide related party dropdown based on payment type
+    paymentTypeSelect.addEventListener('change', function() {
+        const paymentType = this.value;
+        
+        // Show related party dropdown only for pakka payments
+        if (paymentType === 'pakka') {
+            relatedPartyContainer.style.display = 'block';
+            
+            // If we have pakka balances by seller, update the outstanding amount
+            if (window.pakkaBySellerData && window.pakkaBySellerData.length > 0) {
+                // If a seller is already selected, show their outstanding amount
+                const selectedSellerId = relatedPartySelect.value;
+                if (selectedSellerId) {
+                    const sellerData = window.pakkaBySellerData.find(s => s.seller_id == selectedSellerId);
+                    if (sellerData) {
+                        outstandingDues.textContent = formatCurrency(sellerData.amount);
+                        updateBalanceInfo();
+                    }
+                } else {
+                    // Show total pakka outstanding
+                    outstandingDues.textContent = formatCurrency(window.pakkaOutstanding || 0);
+                    updateBalanceInfo();
+                }
+            }
+        } else {
+            relatedPartyContainer.style.display = 'none';
+            // Show kaccha outstanding for kaccha payments
+            outstandingDues.textContent = formatCurrency(window.kacchaOutstanding || 0);
+            updateBalanceInfo();
+        }
+    });
+
+    // Update outstanding amount when related party changes
+    relatedPartySelect.addEventListener('change', function() {
+        const selectedSellerId = this.value;
+        if (selectedSellerId && window.pakkaBySellerData) {
+            const sellerData = window.pakkaBySellerData.find(s => s.seller_id == selectedSellerId);
+            if (sellerData) {
+                outstandingDues.textContent = formatCurrency(sellerData.amount);
+                updateBalanceInfo();
+            }
+        }
+    });
+
     // Fetch party dues when party is selected
     partySelect.addEventListener('change', async function() {
         const partyId = this.value;
@@ -38,6 +86,11 @@ document.addEventListener('DOMContentLoaded', function() {
             outstandingDues.textContent = formatCurrency(0);
             pastDues.textContent = formatCurrency(0);
             balanceInfo.style.display = 'none';
+            
+            // Clear related party dropdown
+            relatedPartySelect.innerHTML = '<option value="">Select Seller</option>';
+            relatedPartyContainer.style.display = 'none';
+            
             return;
         }
 
@@ -46,8 +99,43 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             
             if (response.ok) {
-                outstandingDues.textContent = formatCurrency(data.outstanding_dues);
+                // Store the data globally for later use
+                window.totalOutstanding = data.total_outstanding_dues;
+                window.pakkaOutstanding = data.pakka_outstanding;
+                window.kacchaOutstanding = data.kaccha_outstanding;
+                window.pakkaBySellerData = data.pakka_by_seller;
+                
+                // Set the appropriate outstanding amount based on payment type
+                const paymentType = paymentTypeSelect.value;
+                if (paymentType === 'pakka') {
+                    outstandingDues.textContent = formatCurrency(data.pakka_outstanding);
+                } else {
+                    outstandingDues.textContent = formatCurrency(data.kaccha_outstanding);
+                }
+                
                 pastDues.textContent = formatCurrency(data.past_dues);
+                
+                // Populate related party dropdown with sellers who have pakka balances
+                relatedPartySelect.innerHTML = '<option value="">Select Seller</option>';
+                if (data.pakka_by_seller && data.pakka_by_seller.length > 0) {
+                    data.pakka_by_seller.forEach(seller => {
+                        // Add seller ID to the data for easier reference
+                        seller.seller_id = Object.keys(data.pakka_by_seller).find(
+                            key => data.pakka_by_seller[key] === seller
+                        );
+                        
+                        const option = document.createElement('option');
+                        option.value = seller.seller_id;
+                        option.textContent = `${seller.seller_name} (${formatCurrency(seller.amount)})`;
+                        relatedPartySelect.appendChild(option);
+                    });
+                    
+                    // Show related party dropdown for pakka payments
+                    if (paymentType === 'pakka') {
+                        relatedPartyContainer.style.display = 'block';
+                    }
+                }
+                
                 updateBalanceInfo();
             } else {
                 console.error('Error fetching party dues:', data.error);
@@ -75,6 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
             party_id: partySelect.value,
             payment_date: document.getElementById('paymentDate').value,
             amount: parseFloat(paymentAmount.value),
+            payment_type: paymentTypeSelect.value,
             notes: document.getElementById('notes').value
         };
 
